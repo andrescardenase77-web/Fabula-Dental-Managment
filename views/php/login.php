@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="error-msg"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
             
-            <form name="loginForm" id="loginForm" method="POST" action="login.php">
+            <form name="loginForm" id="loginForm" method="POST" action="./login.php">
                 <div class="input-group">
                     <input type="text" name="username" placeholder="Nombre de usuario" required maxlength="20">
                 </div>
