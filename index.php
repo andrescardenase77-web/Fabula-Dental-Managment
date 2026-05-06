@@ -12,17 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($username === 'admin' && $password === 'Admin12!') {
             $_SESSION['user'] = $username;
             $_SESSION['role'] = 'administrator';
-            header('Location: ../html/administrator.html');
+            header('Location: ./views/html/administrator.html');
             exit;
         } elseif ($username === 'dentist' && $password === 'Denti12!') {
             $_SESSION['user'] = $username;
             $_SESSION['role'] = 'dentist';
-            header('Location: ../html/dentist.html');
+            header('Location: ./views/html/dentist.html');
             exit;
         } elseif ($username === 'reception' && $password === 'Recep12!') {
             $_SESSION['user'] = $username;
             $_SESSION['role'] = 'receptionist';
-            header('Location: ../html/receptionist.html');
+            header('Location: ./views/html/receptionist.html');
             exit;
         } else {
             $error = 'Usuario o contraseña incorrectos.';
@@ -37,19 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión | Fábula Dental</title>
-    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="views/css/login.css">
 </head>
 
 <body>
     <header class="header">
         <ul class="nav-links">
-            <li><a href="../../index.php">INICIO</a></li>
-            <li><a href="../html/treatment.html">TRATAMIENTOS</a></li>
-            <li><a href="#">SERVICIOS</a></li>
-            <li><a href="#">CONTACTO</a></li>
+            <li><a href="index.php">INICIO</a></li>
+            <li><a href="views/html/treatment.html">TRATAMIENTOS</a></li>
         </ul>
         <div class="nav-buttons">
-            <a href="login.php" class="active">INGRESAR</a>
+            <a href="index.php" class="active">INGRESAR</a>
         </div>
     </header>
 
@@ -63,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="error-msg"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
             
-            <form name="loginForm" id="loginForm" method="POST" action="./login.php">
+            <form name="loginForm" id="loginForm" method="POST" action="index.php">
                 <div class="input-group">
                     <input type="text" name="username" placeholder="Nombre de usuario" required maxlength="20">
                 </div>
@@ -72,11 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <button type="submit" class="login-btn">INGRESAR</button>
             </form>
-            <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
         </div>
     </main>
 
-    <script src="../js/login-validation.js"></script>
+    <script src="./views/js/login-validation.js"></script>
 </body>
 
 </html>
