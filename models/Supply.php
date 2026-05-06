@@ -1,45 +1,72 @@
 <?php
 
 class Supply {
-    public $productName;
-    public $productCode;
-    public $productInitialQuantity;
-    public $productUnitCost;
-    public $productPurchaseDate;
-    public $productExpirationDate;
-    public $creado_en;
+    public $name;
+    public $quantity;
+    public $unitCost;
+    public $orderDate;
+    public $expirationDate;
+    public $status;
+    public $createdAt;
 
     public function __construct($data) {
-        $this->productName = $data['productName'] ?? '';
-        $this->productCode = $data['productCode'] ?? '';
+        $this->name = $data['name'] ?? '';
         
-        $rawQuantity = trim((string) ($data['productInitialQuantity'] ?? ''));
+        $rawQuantity = trim((string) ($data['quantity'] ?? ''));
         $validatedQuantity = filter_var(
             $rawQuantity,
             FILTER_VALIDATE_INT,
             ['options' => ['min_range' => 1]]
         );
-        $this->productInitialQuantity = $validatedQuantity !== false ? $validatedQuantity : 0;
+        $this->quantity = $validatedQuantity !== false ? $validatedQuantity : 0;
         
-        $this->productUnitCost = (float) ($data['productUnitCost'] ?? 0);
-        $this->productPurchaseDate = $data['productPurchaseDate'] ?? '';
-        $this->productExpirationDate = $data['productExpirationDate'] ?? '';
-        $this->creado_en = new MongoDB\BSON\UTCDateTime();
+        $this->unitCost = (float) ($data['unitCost'] ?? 0);
+        $this->orderDate = $data['orderDate'] ?? '';
+        $this->expirationDate = $data['expirationDate'] ?? '';
+        $this->status = $this->calculateStatus();
+        $this->createdAt = new MongoDB\BSON\UTCDateTime();
     }
 
     public function isValidQuantity() {
-        return $this->productInitialQuantity > 0;
+        return $this->quantity > 0;
+    }
+
+    public function areDatesValid() {
+        if (empty($this->orderDate) || empty($this->expirationDate)) {
+            return false;
+        }
+        $order = new DateTime($this->orderDate);
+        $expiration = new DateTime($this->expirationDate);
+        return $expiration >= $order;
+    }
+
+    public function calculateStatus() {
+        if (empty($this->expirationDate)) {
+            return 'Pending';
+        }
+
+        $currentDate = new DateTime();
+        $expiration = new DateTime($this->expirationDate);
+        $interval = $currentDate->diff($expiration);
+
+        if ($expiration < $currentDate) {
+            return 'Expired';
+        } elseif ($interval->days <= 30 && $interval->invert == 0) {
+            return 'NearExpiration';
+        } else {
+            return 'Current';
+        }
     }
 
     public function toArray() {
         return [
-            'productName' => $this->productName,
-            'productCode' => $this->productCode,
-            'productInitialQuantity' => $this->productInitialQuantity,
-            'productUnitCost' => $this->productUnitCost,
-            'productPurchaseDate' => $this->productPurchaseDate,
-            'productExpirationDate' => $this->productExpirationDate,
-            'creado_en' => $this->creado_en
+            'name' => $this->name,
+            'quantity' => $this->quantity,
+            'unitCost' => $this->unitCost,
+            'orderDate' => $this->orderDate,
+            'expirationDate' => $this->expirationDate,
+            'status' => $this->status,
+            'createdAt' => $this->createdAt
         ];
     }
 }

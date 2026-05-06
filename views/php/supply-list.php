@@ -1,133 +1,90 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registered Supplies - Fábula Dental</title>
+    <title>Inventario de Suministros | Fábula Dental</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/user-views.css">
     <link rel="stylesheet" href="../css/forms.css">
 </head>
-<body>
-<header>
-    <h1>Registered Supplies - Fábula Dental</h1>
-</header>
-<main class="form-container">
-    <div class="form-card" id="app">
-        <h2>Supply List</h2>
-        <div class="table-wrap">
-            <table class="records-table" v-if="!loading">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Code</th>
-                        <th>Initial Quantity</th>
-                        <th>Unit Cost ($)</th>
-                        <th>Purchase Date</th>
-                        <th>Expiration Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="item in records" :key="item._id?.$oid || item.productCode">
-                        <td><span v-if="!item.isEditing">{{ item.productName }}</span><input v-else v-model="item.productName" style="width:100%; box-sizing: border-box;"></td>
-                        <td><span v-if="!item.isEditing">{{ item.productCode }}</span><input v-else v-model="item.productCode" style="width:100%; box-sizing: border-box;"></td>
-                        <td><span v-if="!item.isEditing">{{ item.productInitialQuantity }}</span><input v-else v-model="item.productInitialQuantity" type="number" style="width:100%; box-sizing: border-box;"></td>
-                        <td><span v-if="!item.isEditing">{{ item.productUnitCost }}</span><input v-else v-model="item.productUnitCost" type="number" step="0.01" style="width:100%; box-sizing: border-box;"></td>
-                        <td><span v-if="!item.isEditing">{{ item.productPurchaseDate }}</span><input v-else v-model="item.productPurchaseDate" type="date" style="width:100%; box-sizing: border-box;"></td>
-                        <td><span v-if="!item.isEditing">{{ item.productExpirationDate }}</span><input v-else v-model="item.productExpirationDate" type="date" style="width:100%; box-sizing: border-box;"></td>
-                        <td>
-                            <div v-if="!item.isEditing" style="display:flex; gap: 5px;">
-                                <button @click="item.isEditing = true" class="btn btn-warning btn-sm">Update</button>
-                                <button @click="deleteRecord(item)" class="btn btn-danger btn-sm">Delete</button>
-                            </div>
-                            <div v-else style="display:flex; gap: 5px;">
-                                <button @click="updateRecord(item)" class="btn btn-primary btn-sm">Save</button>
-                                <button @click="item.isEditing = false" class="btn btn-secondary btn-sm">Cancel</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="records.length === 0">
-                        <td colspan="7" style="text-align: center;">No supplies found</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div v-else style="text-align: center; padding: 20px;">Loading data from API...</div>
+
+<body class="bg-light">
+    <header class="bg-primary">
+        <h1 class="text-white m-0">Inventario General - Fábula Dental</h1>
+    </header>
+
+    <main class="form-container">
+        <div class="form-card w-100" style="max-width: 1200px;" id="app">
+            <h2 class="text-primary fw-bold text-center mb-4">Lista de Suministros</h2>
+            <div class="table-wrap">
+                <table class="records-table w-100" v-if="!loading">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Costo Unit. ($)</th>
+                            <th>Fecha Pedido</th>
+                            <th>Fecha Caducidad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in records" :key="item._id?.$oid || item._id">
+                            <td>
+                                <span v-if="!item.isEditing">{{ item.name }}</span>
+                                <input v-else v-model="item.name" class="form-control form-control-sm">
+                            </td>
+                            <td>
+                                <span v-if="!item.isEditing">{{ item.quantity }}</span>
+                                <input v-else v-model="item.quantity" type="number" class="form-control form-control-sm">
+                            </td>
+                            <td>
+                                <span v-if="!item.isEditing">${{ item.unitCost }}</span>
+                                <input v-else v-model="item.unitCost" type="number" step="0.01" class="form-control form-control-sm">
+                            </td>
+                            <td>
+                                <span v-if="!item.isEditing">{{ item.orderDate }}</span>
+                                <input v-else v-model="item.orderDate" type="date" class="form-control form-control-sm">
+                            </td>
+                            <td>
+                                <span v-if="!item.isEditing">{{ item.expirationDate }}</span>
+                                <input v-else v-model="item.expirationDate" type="date" class="form-control form-control-sm">
+                            </td>
+                            <td class="text-center">
+                                <span v-if="item.status === 'Current'" class="badge bg-success">Vigente</span>
+                                <span v-else-if="item.status === 'NearExpiration'" class="badge bg-warning text-dark">Próximo a Caducar</span>
+                                <span v-else-if="item.status === 'Expired'" class="badge bg-danger">Caducado</span>
+                                <span v-else class="badge bg-secondary">Desconocido</span>
+                            </td>
+                            <td>
+                                <div v-if="!item.isEditing" class="d-flex gap-2 justify-content-center">
+                                    <button @click="item.isEditing = true" class="btn btn-warning btn-sm">Editar</button>
+                                    <button @click="deleteRecord(item)" class="btn btn-danger btn-sm">Eliminar</button>
+                                </div>
+                                <div v-else class="d-flex gap-2 justify-content-center">
+                                    <button @click="updateRecord(item)" class="btn btn-primary btn-sm">Guardar</button>
+                                    <button @click="item.isEditing = false" class="btn btn-secondary btn-sm">Cancelar</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="records.length === 0">
+                            <td colspan="7" class="text-center text-muted py-4">No hay suministros registrados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-else class="text-center py-4 text-primary fw-bold">Cargando inventario...</div>
+            </div>
+            <div class="actions-row mt-4">
+                <a href="../html/supply-form.html" class="btn btn-secondary">Registrar Nuevo</a>
+                <a href="../html/administrator.html" class="btn btn-primary">Volver al Panel</a>
+            </div>
         </div>
-        <div class="actions-row">
-            <a href="./supply-form.php" class="btn btn-secondary">Back to Form</a>
-            <a href="../index.php" class="btn btn-primary">Go to Home</a>
-        </div>
-    </div>
-</main>
-
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<script>
-    const { createApp, ref, onMounted } = Vue;
-
-    createApp({
-        setup() {
-            const records = ref([]);
-            const loading = ref(true);
-
-            onMounted(async () => {
-                try {
-                    const response = await fetch('../api_supplies.php');
-                    records.value = await response.json();
-                } catch (error) {
-                    console.error("Failed to fetch supplies:", error);
-                } finally {
-                    loading.value = false;
-                }
-            });
-
-            const updateRecord = async (item) => {
-                const id = item._id?.$oid || item._id;
-                if (!id) return alert("Missing ID");
-                try {
-                    const payload = { ...item, id };
-                    const response = await fetch('../api_supplies.php', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        item.isEditing = false;
-                        alert("Updated successfully!");
-                    } else {
-                        alert("Failed to update: " + result.error);
-                    }
-                } catch (error) {
-                    alert("Error updating record: " + error);
-                }
-            };
-
-            const deleteRecord = async (item) => {
-                if(confirm("Are you sure you want to delete " + item.productName + "?")) {
-                    const id = item._id?.$oid || item._id;
-                    if (!id) return alert("Missing ID");
-                    try {
-                        const response = await fetch('../api_supplies.php', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            records.value = records.value.filter(r => (r._id?.$oid || r._id) !== id);
-                            alert("Deleted successfully!");
-                        } else {
-                            alert("Failed to delete: " + result.error);
-                        }
-                    } catch (error) {
-                        alert("Error deleting record: " + error);
-                    }
-                }
-            };
-
-            return { records, loading, updateRecord, deleteRecord }
-        }
-    }).mount('#app');
-</script>
+    </main>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="../js/supply-list.js"></script>
 </body>
+
 </html>
