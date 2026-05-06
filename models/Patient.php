@@ -1,36 +1,41 @@
 <?php
 
 class Patient {
-    public $nombre;
-    public $cedula;
-    public $fecha;
-    public $telefono;
-    public $correo;
-    public $genero;
-    public $motivo;
-    public $creado_en;
+    public $patientID;
+    public $fullName;
+    public $birthday;
+    public $phone;
+    public $reasonForConsultation;
+    public $legalRepresentative;
 
     public function __construct($data) {
-        $this->nombre = $data['nombre'] ?? '';
-        $this->cedula = $data['cedula'] ?? '';
-        $this->fecha = $data['fecha'] ?? '';
-        $this->telefono = $data['telefono'] ?? '';
-        $this->correo = $data['correo'] ?? '';
-        $this->genero = $data['genero'] ?? '';
-        $this->motivo = $data['motivo'] ?? '';
-        $this->creado_en = new MongoDB\BSON\UTCDateTime();
+        $this->patientID = $data['patientID'] ?? '';
+        $this->fullName = $data['fullName'] ?? '';
+        $this->birthday = $data['birthday'] ?? '';
+        $this->phone = $data['phone'] ?? '';
+        $this->reasonForConsultation = $data['reasonForConsultation'] ?? '';
+        $this->legalRepresentative = $data['legalRepresentative'] ?? '';
+    }
+
+    public function validateData() {
+        if (empty($this->patientID) || strlen($this->patientID) !== 10) {
+            return false;
+        }
+        if (empty($this->fullName) || empty($this->birthday)) {
+            return false;
+        }
+        return true;
     }
 
     public function toArray() {
         return [
-            'nombre' => $this->nombre,
-            'cedula' => $this->cedula,
-            'fecha' => $this->fecha,
-            'telefono' => $this->telefono,
-            'correo' => $this->correo,
-            'genero' => $this->genero,
-            'motivo' => $this->motivo,
-            'creado_en' => $this->creado_en
+            'patientID' => $this->patientID,
+            'fullName' => $this->fullName,
+            'birthday' => $this->birthday,
+            'phone' => $this->phone,
+            'reasonForConsultation' => $this->reasonForConsultation,
+            'legalRepresentative' => $this->legalRepresentative,
+            'createdAt' => new MongoDB\BSON\UTCDateTime()
         ];
     }
 }
