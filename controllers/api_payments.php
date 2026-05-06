@@ -1,9 +1,11 @@
 <?php
-require 'vendor/autoload.php';
-
-$mongodbUri = 'mongodb+srv://kachuqui_db_user:abtCJQPiKpKhMBz6@cluster0.x7strgx.mongodb.net/?appName=Cluster0';
+ini_set('display_errors', 0);
 
 try {
+    require '../vendor/autoload.php';
+    require_once '../models/Payment.php';
+
+    $mongodbUri = 'mongodb+srv://kachuqui_db_user:abtCJQPiKpKhMBz6@cluster0.x7strgx.mongodb.net/?appName=Cluster0';
     $client = new MongoDB\Client($mongodbUri);
     $db = $client->FabulDentalDB;
     $collection = $db->payments;
@@ -27,6 +29,7 @@ try {
             $result = $collection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($id)]);
             echo json_encode(['success' => $result->getDeletedCount() > 0]);
         } else {
+            http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'No ID provided']);
         }
         exit;
@@ -37,42 +40,49 @@ try {
         $input = json_decode(file_get_contents('php://input'), true);
         $id = $input['id'] ?? null;
         if ($id) {
-            unset($input['id']);
-            unset($input['_id']);
-            unset($input['isEditing']); // remove frontend flag
+            unset($input['id'], $input['_id'], $input['isEditing']);
             $result = $collection->updateOne(
                 ['_id' => new MongoDB\BSON\ObjectId($id)],
                 ['$set' => $input]
             );
             echo json_encode(['success' => true]);
         } else {
+            http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'No ID provided']);
         }
         exit;
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        require_once 'models/Payment.php';
-        
         $payment = new Payment($_POST);
-        $data = $payment->toArray();
-        
-        $result = $collection->insertOne($data);
-        
-        if ($result->getInsertedCount() > 0) {
-            header('Location: views/success.php?type=payment');
+
+        if (!$payment->validatePayment()) {
+            header('Location: ../views/php/error.php?type=payment');
+            exit;
+        }
+
+        if ($payment->paymentType === 'Final') {
+            $payment->status = 'Completed';
         } else {
-            header('Location: views/error.php?type=payment');
+            $payment->status = 'Partial';
+        }
+
+        $result = $collection->insertOne($payment->toArray());
+
+        if ($result->getInsertedCount() > 0) {
+            header('Location: ../views/php/success.php?type=payment');
+        } else {
+            header('Location: ../views/php/error.php?type=payment');
         }
         exit;
     }
-} catch (Exception $e) {
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        header('Content-Type: application/json', true, 500);
-        echo json_encode(['error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Location: ../views/php/error.php?type=payment');
     } else {
-        header('Location: views/error.php?type=payment');
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Server Error']);
     }
     exit;
 }
-?>

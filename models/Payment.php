@@ -1,27 +1,60 @@
 <?php
 
 class Payment {
-    public $patientId;
-    public $paymentAmount;
+    public $paymentID;
+    public $patientID;
+    public $date;
+    public $amount;
+    public $paymentType;
+    public $status;
     public $paymentMethod;
-    public $paymentDate;
-    public $creado_en;
+    public $createdAt;
 
     public function __construct($data) {
-        $this->patientId = $data['patientId'] ?? '';
-        $this->paymentAmount = (float) ($data['paymentAmount'] ?? 0);
-        $this->paymentMethod = $data['paymentMethod'] ?? '';
-        $this->paymentDate = $data['paymentDate'] ?? '';
-        $this->creado_en = new MongoDB\BSON\UTCDateTime();
+        $this->paymentID = $data['paymentID'] ?? null;
+        $this->patientID = $data['patientID'] ?? '';
+        $this->date = $data['date'] ?? '';
+        $this->amount = (float)($data['amount'] ?? 0);
+        $this->paymentType = $data['paymentType'] ?? 'Deposit';
+        $this->status = $data['status'] ?? 'Pending';
+        $this->paymentMethod = $data['paymentMethod'] ?? 'Cash';
+        $this->createdAt = new MongoDB\BSON\UTCDateTime();
+    }
+
+    public function validatePayment() {
+        if (empty($this->patientID) || empty($this->date)) {
+            return false;
+        }
+        if ($this->amount <= 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public function updateStatus($totalPaid, $totalTreatmentCost) {
+        if ($totalPaid >= $totalTreatmentCost) {
+            $this->status = 'Completed';
+        } elseif ($totalPaid > 0) {
+            $this->status = 'Partial';
+        } else {
+            $this->status = 'Pending';
+        }
+    }
+
+    public function calculateBalance($totalTreatmentCost, $totalPaid) {
+        return max(0, $totalTreatmentCost - $totalPaid);
     }
 
     public function toArray() {
         return [
-            'patientId' => $this->patientId,
-            'paymentAmount' => $this->paymentAmount,
+            'paymentID' => $this->paymentID,
+            'patientID' => $this->patientID,
+            'date' => $this->date,
+            'amount' => $this->amount,
+            'paymentType' => $this->paymentType,
+            'status' => $this->status,
             'paymentMethod' => $this->paymentMethod,
-            'paymentDate' => $this->paymentDate,
-            'creado_en' => $this->creado_en
+            'createdAt' => $this->createdAt
         ];
     }
 }
