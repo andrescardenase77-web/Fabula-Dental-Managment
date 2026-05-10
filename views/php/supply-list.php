@@ -1,3 +1,10 @@
+<?php
+session_start();
+require_once '../../dbCredentials.php';
+require_once '../../models/Supply.php';
+
+$supplies = Supply::orderBy('created_at', 'desc')->get();
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -16,10 +23,10 @@
     </header>
 
     <main class="form-container">
-        <div class="form-card w-100" style="max-width: 1200px;" id="app">
+        <div class="form-card w-100" style="max-width: 1200px;">
             <h2 class="text-primary fw-bold text-center mb-4">Lista de Suministros</h2>
             <div class="table-wrap">
-                <table class="records-table w-100" v-if="!loading">
+                <table class="records-table w-100">
                     <thead>
                         <tr>
                             <th>Producto</th>
@@ -32,50 +39,45 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in records" :key="item._id?.$oid || item._id">
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.name }}</span>
-                                <input v-else v-model="item.name" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.quantity }}</span>
-                                <input v-else v-model="item.quantity" type="number" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">${{ item.unitCost }}</span>
-                                <input v-else v-model="item.unitCost" type="number" step="0.01" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.orderDate }}</span>
-                                <input v-else v-model="item.orderDate" type="date" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.expirationDate }}</span>
-                                <input v-else v-model="item.expirationDate" type="date" class="form-control form-control-sm">
-                            </td>
-                            <td class="text-center">
-                                <span v-if="item.status === 'Current'" class="badge bg-success">Vigente</span>
-                                <span v-else-if="item.status === 'NearExpiration'" class="badge bg-warning text-dark">Próximo a Caducar</span>
-                                <span v-else-if="item.status === 'Expired'" class="badge bg-danger">Caducado</span>
-                                <span v-else class="badge bg-secondary">Desconocido</span>
-                            </td>
-                            <td>
-                                <div v-if="!item.isEditing" class="d-flex gap-2 justify-content-center">
-                                    <button @click="item.isEditing = true" class="btn btn-warning btn-sm">Editar</button>
-                                    <button @click="deleteRecord(item)" class="btn btn-danger btn-sm">Eliminar</button>
-                                </div>
-                                <div v-else class="d-flex gap-2 justify-content-center">
-                                    <button @click="updateRecord(item)" class="btn btn-primary btn-sm">Guardar</button>
-                                    <button @click="item.isEditing = false" class="btn btn-secondary btn-sm">Cancelar</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-if="records.length === 0">
-                            <td colspan="7" class="text-center text-muted py-4">No hay suministros registrados.</td>
-                        </tr>
+                        <?php if ($supplies->isEmpty()): ?>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No hay suministros registrados.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($supplies as $item): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($item->supplyName) ?></td>
+                                    <td><?= htmlspecialchars($item->quantity) ?></td>
+                                    <td>$<?= number_format($item->unitCost, 2) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($item->orderDate)) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($item->expirationDate)) ?></td>
+                                    <td class="text-center">
+                                        <?php if ($item->status === 'Current'): ?>
+                                            <span class="badge bg-success">Vigente</span>
+                                        <?php elseif ($item->status === 'NextExpiration'): ?>
+                                            <span class="badge bg-warning text-dark">Próximo a Caducar</span>
+                                        <?php elseif ($item->status === 'Expired'): ?>
+                                            <span class="badge bg-danger">Caducado</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Desconocido</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a href="supply-edit.php?id=<?= $item->id ?>" class="btn btn-warning btn-sm">Editar</a>
+                                            
+                                            <form action="../../controllers/supply-controller.php" method="POST" class="delete-form m-0">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="<?= $item->id ?>">
+                                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
-                <div v-else class="text-center py-4 text-primary fw-bold">Cargando inventario...</div>
             </div>
             <div class="actions-row mt-4">
                 <a href="../html/supply-form.html" class="btn btn-secondary">Registrar Nuevo</a>
@@ -83,7 +85,7 @@
             </div>
         </div>
     </main>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
     <script src="../js/supply-list.js"></script>
 </body>
 

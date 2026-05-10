@@ -19,11 +19,13 @@
         <div class="form-card">
             <h2>Registrar Nuevo Suministro</h2>
 
-            <form id="supplyForm" action="../../controllers/api_supplies.php" method="POST" class="form-grid">
+            <form id="supplyForm" action="../../controllers/supply-controller.php" method="POST" class="form-grid">
+
+                <input type="hidden" name="action" value="create">
 
                 <div class="input-group full-width">
-                    <label for="name">Nombre del Producto / Medicamento</label>
-                    <input type="text" id="name" name="name" placeholder="Ej: Resina Compuesta 3M" required>
+                    <label for="supplyName">Nombre del Producto / Medicamento</label>
+                    <input type="text" id="supplyName" name="supplyName" placeholder="Ej: Resina Compuesta 3M" required>
                 </div>
 
                 <div class="input-group">
