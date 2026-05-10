@@ -21,7 +21,8 @@
         <div class="form-card shadow-sm">
             <h2 class="text-primary fw-bold">Registrar Nuevo Pago</h2>
 
-            <form action="../../controllers/api_payments.php" method="POST" id="paymentForm">
+            <form action="../../controllers/payment-controller.php" method="POST" id="paymentForm">
+                <input type="hidden" name="action" value="create">
                 <div class="form-grid">
 
                     <div class="input-group full-width">
