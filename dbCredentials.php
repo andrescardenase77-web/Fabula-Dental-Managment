@@ -8,7 +8,7 @@ $capsule = new Capsule;
 $dbHost = 'aws-1-us-east-2.pooler.supabase.com';
 $dbPort = 5432;                            
 $dbName = 'postgres';       
-$dbUser = 'postgres.pdzizrxteedhsbtqknml';
+$dbUser = 'postgres.hoskmelosabzuxjvbjyk';
 $dbPass = 'fabuladental30716';
 
 $capsule->addConnection([
