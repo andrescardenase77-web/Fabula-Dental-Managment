@@ -1,3 +1,10 @@
+<?php
+session_start();
+require_once '../../dbCredentials.php';
+require_once '../../models/Patient.php';
+
+$patients = Patient::all();
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -16,20 +23,20 @@
         <h1>Gestión de Pacientes - Fábula Dental</h1>
     </header>
 
-    <main class="container my-5">
-        <div class="bg-white rounded shadow-sm p-4" id="app">
-            <h2 class="text-primary fw-bold mb-4">Lista de Pacientes</h2>
+    <main class="form-container">
+        <div class="form-card w-100" style="max-width: 1200px;">
+            <h2 class="text-primary fw-bold text-center mb-4">Lista de Pacientes</h2>
 
             <div class="mb-4">
                 <div class="input-group">
                     <label for="search">Búsqueda rápida</label>
-                    <input type="text" id="search" v-model="searchQuery" placeholder="Filtrar por nombre o cédula...">
+                    <input type="text" id="search" placeholder="Filtrar por nombre o cédula...">
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+            <div class="table-wrap">
+                <table class="records-table w-100">
+                    <thead>
                         <tr>
                             <th>Nombre Completo</th>
                             <th>Cédula</th>
@@ -40,45 +47,34 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr v-for="item in filteredRecords" :key="item._id?.$oid || item.patientID">
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.fullName }}</span>
-                                <input v-else v-model="item.fullName" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.patientID }}</span>
-                                <input v-else v-model="item.patientID" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.birthday }}</span>
-                                <input v-else v-model="item.birthday" type="date" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.phone }}</span>
-                                <input v-else v-model="item.phone" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.reasonForConsultation }}</span>
-                                <input v-else v-model="item.reasonForConsultation" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span class="text-muted small">{{ item.legalRepresentative || 'N/A' }}</span>
-                            </td>
-                            <td>
-                                <div v-if="!item.isEditing" class="actions-row">
-                                    <button @click="item.isEditing = true" class="btn btn-warning btn-sm">Editar</button>
-                                    <button @click="deleteRecord(item)" class="btn btn-danger btn-sm">Eliminar</button>
-                                </div>
-                                <div v-else class="actions-row">
-                                    <button @click="updateRecord(item)" class="btn btn-primary btn-sm">Guardar</button>
-                                    <button @click="item.isEditing = false" class="btn btn-secondary btn-sm">Cancelar</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-if="filteredRecords.length === 0">
-                            <td colspan="7" class="text-center py-4 text-muted">No se encontraron registros.</td>
-                        </tr>
+                    <tbody id="patientTable">
+                        <?php if ($patients->isEmpty()): ?>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No hay pacientes registrados.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($patients as $item): ?>
+                                <tr class="patient-row">
+                                    <td class="fullName"><?= htmlspecialchars($item->fullName) ?></td>
+                                    <td class="patientID"><?= htmlspecialchars($item->patientID) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($item->birthday)) ?></td>
+                                    <td><?= htmlspecialchars($item->phone) ?></td>
+                                    <td><?= htmlspecialchars($item->reasonForConsultation) ?></td>
+                                    <td><?= htmlspecialchars($item->legalRepresentative ?? 'N/A') ?></td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a href="patient-edit.php?id=<?= $item->patientID ?>" class="btn btn-warning btn-sm">Editar</a>
+                                            
+                                            <form action="../../controllers/patient-controller.php" method="POST" class="delete-form m-0">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="<?= $item->patientID ?>">
+                                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -90,7 +86,6 @@
         </div>
     </main>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="../js/patient-list.js"></script>
 </body>
 

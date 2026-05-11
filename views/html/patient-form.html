@@ -19,7 +19,8 @@
         <div class="form-card shadow-sm">
             <h2 class="text-primary fw-bold mb-4">Ingreso de Datos Personales</h2>
 
-            <form action="../../controllers/api_patients.php" method="POST" id="patientForm">
+            <form action="../../controllers/patient-controller.php" method="POST" id="patientForm">
+                <input type="hidden" name="action" value="create">
                 <div class="form-grid">
 
                     <div class="input-group">

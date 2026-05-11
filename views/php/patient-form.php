@@ -18,37 +18,33 @@
 
         <h2>Patient Details</h2>
 
-        <form action="../api_patients.php" method="POST">
+        <form action="../../controllers/patient-controller.php" method="POST">
+            <input type="hidden" name="action" value="create">
             <div class="form-grid">
 
                 <div class="input-group">
                     <label for="nombre">Full Name</label>
-                    <input type="text" id="nombre" name="nombre" required minlength="3" placeholder="Ex: John Doe">
+                    <input type="text" id="nombre" name="fullName" required minlength="3" placeholder="Ex: John Doe">
                 </div>
 
                 <div class="input-group">
                     <label for="cedula">ID Card (Cédula)</label>
-                    <input type="text" id="cedula" name="cedula" required pattern="[0-9]{10}" placeholder="1727095414">
+                    <input type="text" id="cedula" name="patientID" required pattern="[0-9]{10}" placeholder="1727095414">
                 </div>
 
                 <div class="input-group">
                     <label for="fecha">Date of Birth</label>
-                    <input type="date" id="fecha" name="fecha" min="1900-01-01" max="2026-03-20" required>
+                    <input type="date" id="fecha" name="birthday" min="1900-01-01" max="2026-03-20" required>
                 </div>
 
                 <div class="input-group">
                     <label for="telefono">Phone Number</label>
-                    <input type="tel" id="telefono" name="telefono" required pattern="[0-9]{10}" placeholder="0991234567">
-                </div>
-
-                <div class="input-group">
-                    <label for="correo">Email Address</label>
-                    <input type="email" id="correo" name="correo" required placeholder="example@email.com">
+                    <input type="tel" id="telefono" name="phone" required pattern="[0-9]{10}" placeholder="0991234567">
                 </div>
 
                 <div class="input-group">
                     <label for="genero">Gender</label>
-                    <select id="genero" name="genero" required>
+                    <select id="genero" name="gender" required>
                         <option value="">Select</option>
                         <option value="femenino">Female</option>
                         <option value="masculino">Male</option>
@@ -58,7 +54,7 @@
 
                 <div class="input-group full-width">
                     <label for="motivo">Reason for Visit</label>
-                    <input type="text" id="motivo" name="motivo" required minlength="5" placeholder="Ex: Tooth sensitivity">
+                    <input type="text" id="motivo" name="reasonForConsultation" required minlength="5" placeholder="Ex: Tooth sensitivity">
                 </div>
 
                 <div class="full-width">

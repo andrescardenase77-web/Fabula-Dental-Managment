@@ -19,30 +19,57 @@ class Patient extends Model {
         'legalRepresentative'
     ];
 
-    public function __construct($attributes = []) {
-        parent::__construct($attributes);
-        if (is_array($attributes)) {
-            
-            $mapped = [];
-            if (isset($attributes['fullName'])) $mapped['fullName'] = $attributes['fullName'];
-            if (isset($attributes['patientID'])) $mapped['patientID'] = $attributes['patientID'];
-            if (isset($attributes['birthday'])) $mapped['birthday'] = $attributes['birthday'];
-            if (isset($attributes['phone'])) $mapped['phone'] = $attributes['phone'];
-            if (isset($attributes['gender'])) $mapped['gender'] = $attributes['gender'];
-            if (isset($attributes['reasonForConsultation'])) $mapped['reasonForConsultation'] = $attributes['reasonForConsultation'];
-            if (isset($attributes['legalRepresentative'])) $mapped['legalRepresentative'] = $attributes['legalRepresentative'];
-            
-            $this->fill($mapped);
-        }
+    public function validateData() {
+        return !empty($this->fullName) && !empty($this->birthday);
     }
 
-    public function validateData() {
-        if (empty($this->fullName)) {
-            return false;
-        }
+    public function isValidName() {
+        return !empty($this->fullName) && strlen($this->fullName) >= 3;
+    }
+
+    public function isValidPhone() {
+        return !empty($this->phone) && preg_match('/^[0-9]{10}$/', $this->phone);
+    }
+
+    public function isValidBirthday() {
         if (empty($this->birthday)) {
             return false;
         }
-        return true;
+        
+        try {
+            $birthDate = new DateTime($this->birthday);
+            $today = new DateTime();
+            return $birthDate <= $today;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function getAge() {
+        if (!$this->isValidBirthday()) {
+            return null;
+        }
+        
+        $birthDate = new DateTime($this->birthday);
+        $today = new DateTime();
+        return $today->diff($birthDate)->y;
+    }
+
+    public function isMinor() {
+        $age = $this->getAge();
+        return $age !== null && $age < 18;
+    }
+
+    public function requiresLegalRepresentative() {
+        return $this->isMinor() && empty($this->legalRepresentative);
+    }
+
+    public function isValidGender() {
+        $validGenders = ['masculino', 'femenino', 'otro'];
+        return !empty($this->gender) && in_array($this->gender, $validGenders);
+    }
+
+    public function isValidReasonForConsultation() {
+        return !empty($this->reasonForConsultation) && strlen($this->reasonForConsultation) >= 5;
     }
 }
