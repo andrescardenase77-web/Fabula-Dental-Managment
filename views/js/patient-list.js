@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const rows = Array.from(patientTable.querySelectorAll('.patient-row'));
     const deleteForms = document.querySelectorAll('.delete-form');
 
-    // Filtro de búsqueda
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
         
