@@ -1,3 +1,10 @@
+<?php
+session_start();
+require_once '../../dbCredentials.php';
+require_once '../../models/Payment.php';
+
+$payments = Payment::orderBy('created_at', 'desc')->get();
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -12,17 +19,17 @@
 </head>
 
 <body class="bg-light">
-    <header>
-        <h1>Control de Ingresos - Fábula Dental</h1>
+    <header class="bg-primary">
+        <h1 class="text-white m-0">Control de Ingresos - Fábula Dental</h1>
     </header>
 
-    <main class="container my-5">
-        <div class="bg-white rounded shadow-sm p-4" id="app">
-            <h2 class="text-primary fw-bold mb-4">Registro de Pagos</h2>
+    <main class="container my-5 form-container">
+        <div class="form-card w-100" style="max-width: 1200px;">
+            <h2 class="text-primary fw-bold text-center mb-4">Registro de Pagos</h2>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+            <div class="table-wrap">
+                <table class="records-table w-100">
+                    <thead>
                         <tr>
                             <th>Paciente (ID)</th>
                             <th>Monto ($)</th>
@@ -34,53 +41,58 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in records" :key="item._id?.$oid || item.patientID">
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.patientID }}</span>
-                                <input v-else v-model="item.patientID" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">${{ item.amount }}</span>
-                                <input v-else v-model="item.amount" type="number" step="0.01" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.date }}</span>
-                                <input v-else v-model="item.date" type="date" class="form-control form-control-sm">
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.paymentType }}</span>
-                                <select v-else v-model="item.paymentType" class="form-select form-select-sm">
-                                    <option value="Deposit">Abono</option>
-                                    <option value="Final">Final</option>
-                                </select>
-                            </td>
-                            <td>
-                                <span v-if="!item.isEditing">{{ item.paymentMethod }}</span>
-                                <select v-else v-model="item.paymentMethod" class="form-select form-select-sm">
-                                    <option value="Cash">Efectivo</option>
-                                    <option value="Card">Tarjeta</option>
-                                    <option value="Transfer">Transferencia</option>
-                                </select>
-                            </td>
-                            <td>
-                                <span v-if="item.status === 'Completed'" class="badge bg-success-subtle text-success">Completado</span>
-                                <span v-else-if="item.status === 'Partial'" class="badge bg-warning-subtle text-warning-emphasis">Parcial</span>
-                                <span v-else class="badge bg-secondary">Pendiente</span>
-                            </td>
-                            <td>
-                                <div v-if="!item.isEditing" class="actions-row">
-                                    <button @click="item.isEditing = true" class="btn btn-warning btn-sm">Editar</button>
-                                    <button @click="deleteRecord(item)" class="btn btn-danger btn-sm">Eliminar</button>
-                                </div>
-                                <div v-else class="actions-row">
-                                    <button @click="updateRecord(item)" class="btn btn-primary btn-sm">Guardar</button>
-                                    <button @click="item.isEditing = false" class="btn btn-secondary btn-sm">Cancelar</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-if="records.length === 0">
-                            <td colspan="7" class="text-center py-4 text-muted">No hay transacciones registradas.</td>
-                        </tr>
+                        <?php if ($payments->isEmpty()): ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">No hay transacciones registradas.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($payments as $item): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($item->patientID) ?></td>
+                                    <td>$<?= number_format($item->amount, 2) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($item->date)) ?></td>
+                                    <td>
+                                        <?php if ($item->paymentType === 'Deposit'): ?>
+                                            Abono
+                                        <?php elseif ($item->paymentType === 'Final'): ?>
+                                            Final
+                                        <?php else: ?>
+                                            <?= htmlspecialchars($item->paymentType) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($item->paymentMethod === 'Cash'): ?>
+                                            Efectivo
+                                        <?php elseif ($item->paymentMethod === 'Card'): ?>
+                                            Tarjeta
+                                        <?php elseif ($item->paymentMethod === 'Transfer'): ?>
+                                            Transferencia
+                                        <?php else: ?>
+                                            <?= htmlspecialchars($item->paymentMethod) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($item->status === 'Completed'): ?>
+                                            <span class="badge bg-success">Completado</span>
+                                        <?php elseif ($item->status === 'Partial'): ?>
+                                            <span class="badge bg-warning text-dark">Parcial</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Pendiente</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a href="payment-edit.php?id=<?= $item->id ?>" class="btn btn-warning btn-sm">Editar</a>
+                                            <form action="../../controllers/payment-controller.php" method="POST" class="delete-form m-0">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="<?= $item->id ?>">
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar registro de pago?');">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -92,8 +104,6 @@
         </div>
     </main>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="../js/payment-list.js"></script>
 </body>
 
 </html>
